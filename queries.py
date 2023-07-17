@@ -1,7 +1,7 @@
 from utils import get_list_of_increments, is_falsy, get_fe_ready_record
 
 
-def get_increments(list: list):
+def get_increments(list):
     res = ''
     for idx, el in enumerate(list):
         if idx == 0:
