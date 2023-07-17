@@ -11,8 +11,6 @@ cur = con.cursor()
 build_tables(cur)
 app = FastAPI()
 
-# TODO fix post method
-
 
 @app.post('/weather')
 def add_weather_record(raw_climate_record: RawClimateItem):
@@ -48,5 +46,5 @@ def get_weather_record(
 
     request_params = get_request_params(
         last_record, segment_h, range_h, is_average, weather_param)
-    # get data in range
+
     return get_event_data_in_range(request_params, cur)

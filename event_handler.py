@@ -5,6 +5,7 @@ from queries import get_names_of_parameters
 
 
 def process_new_event(raw_climate_record, cur, con):
+    raw_climate_record = dict(raw_climate_record)
     serialized_range = json.dumps(raw_climate_record['range'])
     converted_ts = convert_ts_to_sqlite_format(raw_climate_record['ts'])
 

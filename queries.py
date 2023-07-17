@@ -60,7 +60,12 @@ def get_latest_weather(cur):
 
 def get_data_for_single_event(event, cur):
     event_data_res = cur.execute(
-        f"SELECT * FROM EventData WHERE event_id = '{event[0]}'")
+        f"""SELECT * FROM EventData 
+            INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
+            WHERE event_id = '{event[0]}'
+        """
+    )
+
     try:
         event_data = event_data_res.fetchall()
         return {
@@ -68,7 +73,7 @@ def get_data_for_single_event(event, cur):
             'event_data': event_data
         }
     except:
-        raise HTTPException(status_code=404, detail='Events not found')
+        raise HTTPException(status_code=404, detail='Event data not found')
 
 
 def get_names_of_parameters(cur):
@@ -77,4 +82,4 @@ def get_names_of_parameters(cur):
         return parameter_names_res.fetchall()
     except:
         raise HTTPException(
-            status_code=404, detail='Parameters names not found')
+            status_code=404, detail='Parameter names not found')
