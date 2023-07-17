@@ -84,3 +84,14 @@ def get_list_of_increments(range_h, segment_h, ts):
             list.append(minutes_from_ts)
 
     return list
+
+
+def get_fe_ready_record(record):
+    parsed_item = {
+        'ts': record['event'][3],
+        'data': {}
+    }
+    for el in record['event_data']:
+        value = el[1] if is_integer_num(el[1]) else json.loads(el[2])
+        parsed_item['data'][el[3]] = value
+    return parsed_item

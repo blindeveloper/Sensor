@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException
-from utils import is_falsy, get_list_of_json_data, get_request_params
+from utils import is_falsy, get_list_of_json_data, get_request_params, get_fe_ready_record
 from event_handler import process_new_event
 from queries import get_latest_weather, get_event_data_in_range
 from tables import build_tables
@@ -9,10 +9,7 @@ import sqlite3
 con = sqlite3.connect("climate_data_hub.db", check_same_thread=False)
 cur = con.cursor()
 build_tables(cur)
-
-
 app = FastAPI()
-
 
 # TODO fix post method
 
@@ -20,7 +17,7 @@ app = FastAPI()
 @app.post('/weather')
 def add_weather_record(raw_climate_record: RawClimateItem):
     process_new_event(raw_climate_record, cur, con)
-    return {}
+    raise HTTPException(status_code=200, detail='Record added')
 
 
 @app.post('/day-of-weather')
@@ -50,7 +47,7 @@ def get_weather_record(
         raise HTTPException(status_code=404, detail='Item not found')
 
     if is_falsy(range_h):
-        return last_record
+        return get_fe_ready_record(last_record)
 
     request_params = get_request_params(
         last_record, segment_h, range_h, is_average, weather_param)

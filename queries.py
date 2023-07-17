@@ -1,4 +1,4 @@
-from utils import get_list_of_increments, is_falsy
+from utils import get_list_of_increments, is_falsy, get_fe_ready_record
 
 
 def get_increments(list: list):
@@ -38,8 +38,9 @@ def get_event_data_in_range(request_params, cur):
     event_list_res = cur.execute(search_string)
     event_list = event_list_res.fetchall()
     for event in event_list:
-        list_of_events_with_data.append(get_data_for_single_event(event, cur))
-    print(len(list_of_events_with_data))
+        single_event = get_data_for_single_event(event, cur)
+        fe_ready_event = get_fe_ready_record(single_event)
+        list_of_events_with_data.append(fe_ready_event)
     return list_of_events_with_data
 
 
