@@ -83,3 +83,20 @@ def get_names_of_parameters(cur):
     except:
         raise HTTPException(
             status_code=404, detail='Parameter names not found')
+
+
+def get_average(cur, weather_param):
+    wit_avg_res = cur.execute(
+        f"""
+            SELECT avg(value_numeric) FROM EventData
+            INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
+            INNER JOIN Event ON Event.id = EventData.event_id
+            WHERE Parameter.name = '{weather_param}'
+        """)
+    try:
+        res = wit_avg_res.fetchone()
+        return {
+            f'{weather_param}': res[0],
+        }
+    except:
+        raise HTTPException(status_code=404, detail='Item not found')

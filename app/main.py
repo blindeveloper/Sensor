@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, HTTPException
-from app.utils import is_falsy, get_list_of_json_data, get_request_params, get_fe_ready_record
+from app.utils import get_list_of_json_data, get_request_params, get_fe_ready_record
 from app.event_handler import process_new_event
-from app.queries import get_latest_weather, get_event_data_in_range
+from app.queries import get_latest_weather, get_event_data_in_range, get_average
 from app.tables import build_tables
 from app.data_structures import RawClimateItem, PathItem
 import sqlite3
@@ -22,7 +22,7 @@ def add_weather_record(raw_climate_record: RawClimateItem):
 def load_day_of_weather_data(path_record: PathItem):
     # get list of json data for specific day
     list_of_events = get_list_of_json_data(path_record.month, path_record.day)
-    if is_falsy(list_of_events):
+    if not list_of_events:
         raise HTTPException(
             status_code=404, detail='Provided path is not found')
     else:
@@ -41,10 +41,13 @@ def get_weather_record(
         None, description='Weather parameter like or radiation_sum_j_cm2 wind_direction_degrees')
 ):
     last_record = get_latest_weather(cur)
-    if is_falsy(range_h):
+    if not range_h:
         return get_fe_ready_record(last_record)
 
     request_params = get_request_params(
         last_record, segment_h, range_h, is_average, weather_param)
+
+    if is_average:
+        get_average(cur, weather_param)
 
     return get_event_data_in_range(request_params, cur)
