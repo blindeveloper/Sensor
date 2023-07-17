@@ -1,66 +1,20 @@
 from fastapi import FastAPI, Query, HTTPException
-from pydantic import BaseModel
-from utils import is_falsy, get_list_of_json_data
+from utils import is_falsy, get_list_of_json_data, get_request_params
 from event_handler import process_new_event
-
+from queries import get_latest_weather, get_event_data_in_range
+from tables import build_tables
+from data_structures import RawClimateItem, PathItem
 import sqlite3
 
 con = sqlite3.connect("climate_data_hub.db", check_same_thread=False)
 cur = con.cursor()
-cur.execute(
-    """CREATE TABLE IF NOT EXISTS Event(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR,
-        range VARCHAR, 
-        ts VARCHAR, 
-        pt INTEGER)""")
-
-cur.execute(
-    """CREATE TABLE IF NOT EXISTS Parameter(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR,
-        value_type VARCHAR)""")
-
-cur.execute(
-    """CREATE TABLE IF NOT EXISTS EventData(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        value_numeric NUMERIC,
-        value_char VARCHAR,
-        parameter_id INTEGER,
-        event_id INTEGER,
-        FOREIGN KEY (parameter_id) REFERENCES Parameter (id),
-        FOREIGN KEY (event_id) REFERENCES Event (id));
-    """)
-
-
-class RawClimateItem(BaseModel):
-    name: str
-    range: dict
-    rows: list
-    ts: str
-    pt: int
-
-
-class PathItem(BaseModel):
-    month: str
-    day: str
+build_tables(cur)
 
 
 app = FastAPI()
 
 
-def get_latest_weather(cur):
-    latest_event_res = cur.execute(
-        "SELECT * FROM Event ORDER BY ts DESC LIMIT 1")
-    latest_event = latest_event_res.fetchone()
-    latest_event_id = latest_event[0]
-    event_data_res = cur.execute(
-        f"SELECT * FROM EventData WHERE event_id = '{latest_event_id}'")
-    event_data = event_data_res.fetchall()
-    return {
-        'event': latest_event,
-        'event_data': event_data
-    }
+# TODO fix post method
 
 
 @app.post('/weather')
@@ -95,4 +49,10 @@ def get_weather_record(
     if is_falsy(last_record):
         raise HTTPException(status_code=404, detail='Item not found')
 
-    return last_record
+    if is_falsy(range_h):
+        return last_record
+
+    request_params = get_request_params(
+        last_record, segment_h, range_h, is_average, weather_param)
+    # get data in range
+    return get_event_data_in_range(request_params, cur)
