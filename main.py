@@ -43,9 +43,6 @@ def get_weather_record(
         None, description='Weather parameter like or radiation_sum_j_cm2 wind_direction_degrees')
 ):
     last_record = get_latest_weather(cur)
-    if is_falsy(last_record):
-        raise HTTPException(status_code=404, detail='Item not found')
-
     if is_falsy(range_h):
         return get_fe_ready_record(last_record)
 

@@ -1,4 +1,5 @@
 from utils import get_list_of_increments, is_falsy, get_fe_ready_record
+from fastapi import HTTPException
 
 
 def get_increments(list):
@@ -36,26 +37,44 @@ def get_event_data_in_range(request_params, cur):
     list_of_events_with_data = []
     search_string = get_sql_events_in_range_segment(request_params)
     event_list_res = cur.execute(search_string)
-    event_list = event_list_res.fetchall()
-    for event in event_list:
-        single_event = get_data_for_single_event(event, cur)
-        fe_ready_event = get_fe_ready_record(single_event)
-        list_of_events_with_data.append(fe_ready_event)
-    return list_of_events_with_data
+    try:
+        event_list = event_list_res.fetchall()
+        for event in event_list:
+            single_event = get_data_for_single_event(event, cur)
+            fe_ready_event = get_fe_ready_record(single_event)
+            list_of_events_with_data.append(fe_ready_event)
+        return list_of_events_with_data
+    except:
+        raise HTTPException(status_code=404, detail='Events not found')
 
 
 def get_latest_weather(cur):
     latest_event_res = cur.execute(
         "SELECT * FROM Event ORDER BY ts DESC LIMIT 1")
-    latest_event = latest_event_res.fetchone()
-    return get_data_for_single_event(latest_event, cur)
+    try:
+        latest_event = latest_event_res.fetchone()
+        return get_data_for_single_event(latest_event, cur)
+    except:
+        raise HTTPException(status_code=404, detail='Item not found')
 
 
 def get_data_for_single_event(event, cur):
     event_data_res = cur.execute(
         f"SELECT * FROM EventData WHERE event_id = '{event[0]}'")
-    event_data = event_data_res.fetchall()
-    return {
-        'event': event,
-        'event_data': event_data
-    }
+    try:
+        event_data = event_data_res.fetchall()
+        return {
+            'event': event,
+            'event_data': event_data
+        }
+    except:
+        raise HTTPException(status_code=404, detail='Events not found')
+
+
+def get_names_of_parameters(cur):
+    try:
+        parameter_names_res = cur.execute('SELECT name FROM Parameter')
+        return parameter_names_res.fetchall()
+    except:
+        raise HTTPException(
+            status_code=404, detail='Parameters names not found')

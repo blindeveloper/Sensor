@@ -1,6 +1,7 @@
 
 from utils import convert_tuples_to_strings, is_integer_num, convert_ts_to_sqlite_format
 import json
+from queries import get_names_of_parameters
 
 
 def process_new_event(raw_climate_record, cur, con):
@@ -15,9 +16,8 @@ def process_new_event(raw_climate_record, cur, con):
     event_id = cur.lastrowid
     con.commit()
     # load supporting parameters
-    parameter_names_res = cur.execute('SELECT name FROM Parameter')
-    supporting_parameters = convert_tuples_to_strings(
-        parameter_names_res.fetchall())
+    names_of_parameters = get_names_of_parameters(cur)
+    supporting_parameters = convert_tuples_to_strings(names_of_parameters)
     # add new parameters if needed to Parameter table
     for row in raw_climate_record['rows']:
         if row[0] == 'Variable':
