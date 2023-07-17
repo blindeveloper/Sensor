@@ -1,0 +1,18 @@
+[project]
+name = "misha_assignment"
+description = "Misha Assignment"
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = [
+    "fastapi",
+    "uvicorn"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
+[tool.setuptools]
+packages = ["app"]

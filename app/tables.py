@@ -4,7 +4,7 @@ def build_tables(cur):
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name VARCHAR,
           range VARCHAR, 
-          ts VARCHAR, 
+          ts DATETIME, 
           pt INTEGER)""")
 
     cur.execute(

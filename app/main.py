@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Query, HTTPException
-from utils import is_falsy, get_list_of_json_data, get_request_params, get_fe_ready_record
-from event_handler import process_new_event
-from queries import get_latest_weather, get_event_data_in_range
-from tables import build_tables
-from data_structures import RawClimateItem, PathItem
+from app.utils import is_falsy, get_list_of_json_data, get_request_params, get_fe_ready_record
+from app.event_handler import process_new_event
+from app.queries import get_latest_weather, get_event_data_in_range
+from app.tables import build_tables
+from app.data_structures import RawClimateItem, PathItem
 import sqlite3
 
 con = sqlite3.connect("climate_data_hub.db", check_same_thread=False)

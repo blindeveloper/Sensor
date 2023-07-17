@@ -1,7 +1,7 @@
 
-from utils import convert_tuples_to_strings, is_integer_num, convert_ts_to_sqlite_format
+from app.utils import convert_tuples_to_strings, is_integer_num, convert_ts_to_sqlite_format
 import json
-from queries import get_names_of_parameters
+from app.queries import get_names_of_parameters
 
 
 def process_new_event(raw_climate_record, cur, con):
