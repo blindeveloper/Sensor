@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
-from utils import convert_tuples_to_strings, is_integer_num
+from utils import convert_tuples_to_strings, is_integer_num, is_falsy, convert_ts_to_sqlite_format
 import sqlite3
 import json
 
@@ -41,17 +41,31 @@ class RawClimateItem(BaseModel):
 
 
 app = FastAPI()
-res = cur.execute("SELECT * FROM EventData WHE")
-print(res.fetchall())
+
+
+def get_latest_weather(cur):
+    latest_event_res = cur.execute(
+        "SELECT * FROM Event ORDER BY ts DESC LIMIT 1")
+    latest_event = latest_event_res.fetchone()
+    latest_event_id = latest_event[0]
+    event_data_res = cur.execute(
+        f"SELECT * FROM EventData WHERE event_id = '{latest_event_id}'")
+    event_data = event_data_res.fetchall()
+    return {
+        'event': latest_event,
+        'event_data': event_data
+    }
 
 
 @app.post('/weather')
 def add_weather_record(raw_climate_record: RawClimateItem):
     serialized_range = json.dumps(raw_climate_record.range)
+    converted_ts = convert_ts_to_sqlite_format(raw_climate_record.ts)
+
     # add new event to Event table
     cur.execute(f"""
         INSERT INTO Event (name,range, ts, pt)
-        VALUES('{raw_climate_record.name}','{serialized_range}', '{raw_climate_record.ts}', '{raw_climate_record.pt}');
+        VALUES('{raw_climate_record.name}','{serialized_range}', '{converted_ts}', '{raw_climate_record.pt}');
     """)
     event_id = cur.lastrowid
     con.commit()
@@ -86,3 +100,19 @@ def add_weather_record(raw_climate_record: RawClimateItem):
         con.commit()
 
     return {}
+
+
+@app.get('/weather')
+def get_weather_record(
+    range_h: float = Query(None, description='Range of time in hours'),
+    segment_h: float = Query(
+        None, description='Segment of time in hours. 15 min = 0.25 h, 30 min = 0.5 h, 1 d = 24 h'),
+    is_average: bool = Query(None, description='Average flag'),
+    weather_param: str = Query(
+        None, description='Weather parameter like or radiation_sum_j_cm2 wind_direction_degrees')
+):
+    last_record = get_latest_weather(cur)
+    if is_falsy(last_record):
+        raise HTTPException(status_code=404, detail='Item not found')
+
+    return last_record
