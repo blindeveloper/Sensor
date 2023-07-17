@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, HTTPException
 from app.utils import get_list_of_json_data, get_request_params, get_fe_ready_record
 from app.event_handler import process_new_event
-from app.queries import get_latest_weather, get_event_data_in_range, get_average
+from app.queries import get_latest_weather, get_event_data_in_range, get_average_with_param, get_total_average, get_average_with_segment
 from app.tables import build_tables
 from app.data_structures import RawClimateItem, PathItem
 import sqlite3
@@ -38,7 +38,7 @@ def get_weather_record(
         None, description='Segment of time in hours. 15 min = 0.25 h, 30 min = 0.5 h, 1 d = 24 h'),
     is_average: bool = Query(None, description='Average flag'),
     weather_param: str = Query(
-        None, description='Weather parameter like or radiation_sum_j_cm2 wind_direction_degrees')
+        None, description='Weather parameter like radiation_sum_j_cm2 or wind_direction_degrees')
 ):
     last_record = get_latest_weather(cur)
     if not range_h:
@@ -48,6 +48,11 @@ def get_weather_record(
         last_record, segment_h, range_h, is_average, weather_param)
 
     if is_average:
-        get_average(cur, weather_param)
+        if not weather_param and not segment_h:
+            return get_total_average(cur, request_params)
+        if weather_param and not segment_h:
+            return get_average_with_param(cur, request_params)
+        if segment_h:
+            return get_average_with_segment(cur, request_params)
 
-    return get_event_data_in_range(request_params, cur)
+    return get_event_data_in_range(cur, request_params)

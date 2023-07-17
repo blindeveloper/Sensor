@@ -1,5 +1,6 @@
-from app.utils import get_list_of_increments, is_falsy, get_fe_ready_record
+from app.utils import get_list_of_increments, add_hours_to_ts, get_fe_ready_record
 from fastapi import HTTPException
+import json
 
 
 def get_increments(list):
@@ -13,7 +14,7 @@ def get_increments(list):
 
 
 def get_sql_events_in_range_segment(req):
-    if not is_falsy(req['segment_h']) and is_falsy(req['is_average']):
+    if req['segment_h']:
         list_of_increments = (get_list_of_increments(
             req['range_h'], req['segment_h'], req['count_from_record_ts']))
 
@@ -33,7 +34,7 @@ def get_sql_events_in_range_segment(req):
             """
 
 
-def get_event_data_in_range(request_params, cur):
+def get_event_data_in_range(cur, request_params):
     list_of_events_with_data = []
     search_string = get_sql_events_in_range_segment(request_params)
     event_list_res = cur.execute(search_string)
@@ -85,18 +86,60 @@ def get_names_of_parameters(cur):
             status_code=404, detail='Parameter names not found')
 
 
-def get_average(cur, weather_param):
-    wit_avg_res = cur.execute(
-        f"""
-            SELECT avg(value_numeric) FROM EventData
-            INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
-            INNER JOIN Event ON Event.id = EventData.event_id
-            WHERE Parameter.name = '{weather_param}'
-        """)
+def get_average_with_param(cur, req):
     try:
+        wit_avg_res = cur.execute(
+            f"""
+                SELECT avg(value_numeric) FROM EventData
+                INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
+                INNER JOIN Event ON Event.id = EventData.event_id
+                WHERE Parameter.name = '{req['weather_param']}'
+                AND Event.ts >= '{req['count_from_record_ts']}'
+                AND Event.ts <= datetime('{req['last_record_ts']}')
+                ORDER BY Event.ts DESC
+            """)
         res = wit_avg_res.fetchone()
         return {
-            f'{weather_param}': res[0],
+            f"{req['weather_param']}": res[0],
         }
+    except:
+        raise HTTPException(status_code=404, detail='Item not found')
+
+
+def get_total_average(cur, req):
+    try:
+        total_avg_res = cur.execute(
+            f"""
+                SELECT Parameter.name, avg(EventData.value_numeric) FROM EventData
+                INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
+                INNER JOIN Event ON Event.id = EventData.event_id
+                WHERE Event.ts >= '{req['count_from_record_ts']}'
+                AND Event.ts <= datetime('{req['last_record_ts']}')
+                GROUP BY Parameter.name
+            """)
+        res = total_avg_res.fetchall()
+        fe_ready_res = {}
+        for el in res:
+            fe_ready_res[f'{el[0]}'] = el[1]
+        return fe_ready_res
+    except:
+        raise HTTPException(status_code=404, detail='Item not found')
+
+
+def get_average_with_segment(cur, req):
+    try:
+        list_of_average_by_segment = []
+        end_ts = req['last_record_ts']
+        next_ts = req['count_from_record_ts']
+
+        while next_ts < end_ts:
+            next_ts = add_hours_to_ts(next_ts, req['segment_h'])
+            req['last_record_ts'] = next_ts
+            res = get_total_average(cur, req)
+
+            list_of_average_by_segment.append(res)
+
+        return list_of_average_by_segment
+
     except:
         raise HTTPException(status_code=404, detail='Item not found')
