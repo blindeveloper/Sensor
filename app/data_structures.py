@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
+from typing import List
 
 
 class RawClimateItem(BaseModel):
@@ -7,6 +8,10 @@ class RawClimateItem(BaseModel):
     rows: list
     ts: str
     pt: int
+
+
+class RawClimateList(RootModel):
+    List[RawClimateItem]
 
 
 class PathItem(BaseModel):

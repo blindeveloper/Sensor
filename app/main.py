@@ -3,7 +3,7 @@ from app.utils import get_list_of_json_data, get_request_params, get_fe_ready_re
 from app.event_handler import process_new_event
 from app.queries import get_latest_weather, get_event_data_in_range, get_average_with_param, get_total_average, get_average_with_segment
 from app.tables import build_tables
-from app.data_structures import RawClimateItem, PathItem
+from app.data_structures import PathItem, RawClimateList
 import sqlite3
 import os
 
@@ -15,8 +15,11 @@ app = FastAPI()
 
 
 @app.post('/weather')
-def add_weather_record(raw_climate_record: RawClimateItem):
-    return process_new_event(raw_climate_record, cur, con)
+def add_weather_record(raw_climate_record_list: RawClimateList):
+    report = []
+    for raw_climate_record in raw_climate_record_list.root:
+        report.append(process_new_event(raw_climate_record, cur, con))
+    return report
 
 
 @app.post('/day-of-weather')
@@ -27,9 +30,10 @@ def load_day_of_weather_data(path_record: PathItem):
         raise HTTPException(
             status_code=404, detail='Provided path is not found')
     else:
+        report = []
         for event in list_of_events:
-            process_new_event(event, cur, con)
-        raise HTTPException(status_code=200, detail='Database updated')
+            report.append(process_new_event(event, cur, con))
+        return report
 
 
 @app.get('/weather')

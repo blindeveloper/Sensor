@@ -1,6 +1,5 @@
 from app.utils import convert_tuples_to_strings
 from app.queries import get_names_of_parameters, add_new_event, add_new_parameter, get_parameter_id, add_parameter_values_to_event_data, get_is_unique_event
-from fastapi import HTTPException
 
 
 def process_new_event(raw_climate_record, cur, con):
@@ -24,8 +23,6 @@ def process_new_event(raw_climate_record, cur, con):
             # add all parameters values to EventData table
             add_parameter_values_to_event_data(
                 cur, con, row, parameter_id, event_id)
-        return HTTPException(
-            status_code=200, detail='Event added to database')
+        return f"Event with ts {raw_climate_record['ts']} added to the database"
     else:
-        return HTTPException(
-            status_code=500, detail='Event is already in database')
+        return f"Event with ts {raw_climate_record['ts']} is already in the database"
