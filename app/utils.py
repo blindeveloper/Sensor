@@ -16,10 +16,6 @@ def is_integer_num(n):
     return False
 
 
-def is_falsy(value):
-    return value == False or value == None
-
-
 def convert_ts_to_sqlite_format(ts):
     dt = datetime.fromisoformat(ts)
     return f'{dt.strftime(TIME_FORMAT)}'

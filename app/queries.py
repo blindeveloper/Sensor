@@ -56,7 +56,7 @@ def get_latest_weather(cur):
         latest_event = latest_event_res.fetchone()
         return get_data_for_single_event(latest_event, cur)
     except:
-        raise HTTPException(status_code=404, detail='Item not found')
+        raise HTTPException(status_code=404, detail='Event not found')
 
 
 def get_data_for_single_event(event, cur):
