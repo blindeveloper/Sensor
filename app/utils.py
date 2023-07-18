@@ -25,10 +25,9 @@ def get_list_of_json_data(month: str, day: str):
     if os.path.exists(f'./data/{month}/{day}/'):
         month_of_data_list = []
         for f_name in glob(f'./data/{month}/{day}/*.json'):
-            f = open(f_name)
-            raw_climate_record = json.load(f)
-            month_of_data_list.append(raw_climate_record)
-            f.close()
+            with open(f_name) as f:
+                raw_climate_record = json.load(f)
+                month_of_data_list.append(raw_climate_record)
         return month_of_data_list
     else:
         return None

@@ -135,10 +135,11 @@ def get_average_with_segment(cur, req):
         while next_ts < end_ts:
             next_ts = add_hours_to_ts(next_ts, req['segment_h'])
             req['last_record_ts'] = next_ts
-            res = get_total_average(cur, req)
-
+            if req['weather_param']:
+                res = get_average_with_param(cur, req)
+            else:
+                res = get_total_average(cur, req)
             list_of_average_by_segment.append(res)
-
         return list_of_average_by_segment
 
     except:
