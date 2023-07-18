@@ -14,8 +14,7 @@ app = FastAPI()
 
 @app.post('/weather')
 def add_weather_record(raw_climate_record: RawClimateItem):
-    process_new_event(raw_climate_record, cur, con)
-    raise HTTPException(status_code=200, detail='Record added')
+    return process_new_event(raw_climate_record, cur, con)
 
 
 @app.post('/day-of-weather')

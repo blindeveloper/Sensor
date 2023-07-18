@@ -197,3 +197,12 @@ def add_parameter_values_to_event_data(cur, con, row, parameter_id, event_id):
     except:
         raise HTTPException(
             status_code=500, detail='Internal server error')
+
+
+def get_is_unique_event(cur, ts):
+    res = cur.execute(
+        f"SELECT * FROM Event WHERE ts = '{convert_ts_to_sqlite_format(ts)}'")
+    if res.fetchone() is None:
+        return True
+    else:
+        return False
