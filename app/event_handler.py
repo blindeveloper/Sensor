@@ -3,7 +3,6 @@ from app.queries import get_names_of_parameters, add_new_event, add_new_paramete
 
 
 def process_new_event(raw_climate_record, cur, con):
-    raw_climate_record = dict(raw_climate_record)
     # check if no event with same ts exist in db
     is_unique = get_is_unique_event(cur, raw_climate_record['ts'])
     if is_unique:

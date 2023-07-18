@@ -3,7 +3,7 @@ from app.utils import get_list_of_json_data, get_request_params, get_fe_ready_re
 from app.event_handler import process_new_event
 from app.queries import get_latest_weather, get_event_data_in_range, get_average_with_param, get_total_average, get_average_with_segment
 from app.tables import build_tables
-from app.data_structures import PathItem, RawClimateList
+from app.data_structures import PathItem, RawClimateList, RawClimateItem
 import sqlite3
 import os
 
