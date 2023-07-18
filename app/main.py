@@ -4,12 +4,17 @@ from app.event_handler import process_new_event
 from app.queries import get_latest_weather, get_event_data_in_range, get_average_with_param, get_total_average, get_average_with_segment
 from app.tables import build_tables
 from app.data_structures import PathItem, RawClimateList, RawClimateItem
-import sqlite3
 import os
+import psycopg2
 
-con = sqlite3.connect(os.path.abspath(
-    "./db/climate_data_hub.db"), check_same_thread=False)
-cur = con.cursor()
+connection = psycopg2.connect(user=os.os.environ("POSTGRES_USER"),
+                                  password=os.os.environ("POSTGRES_PASSWORD"),
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database=os.os.environ("POSTGRES_DB"))
+
+    # Create a cursor to perform database operations
+    cursor = connection.cursor()
 build_tables(cur)
 app = FastAPI()
 

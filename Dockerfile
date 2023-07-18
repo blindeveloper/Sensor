@@ -5,6 +5,7 @@ WORKDIR /app
 RUN python -m venv .venv
 ENV PATH=/app/.venv/bin:${PATH}
 
+RUN apk add postgresql-dev gcc python3-dev musl-dev
 COPY ./requirements.txt /app/requirements.txt
 
 RUN /app/.venv/bin/pip install --no-cache-dir --upgrade -r requirements.txt
