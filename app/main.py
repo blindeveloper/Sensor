@@ -5,8 +5,10 @@ from app.queries import get_latest_weather, get_event_data_in_range, get_average
 from app.tables import build_tables
 from app.data_structures import RawClimateItem, PathItem
 import sqlite3
+import os
 
-con = sqlite3.connect("climate_data_hub.db", check_same_thread=False)
+con = sqlite3.connect(os.path.abspath(
+    "./db/climate_data_hub.db"), check_same_thread=False)
 cur = con.cursor()
 build_tables(cur)
 app = FastAPI()

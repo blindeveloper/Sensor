@@ -24,6 +24,8 @@ def process_new_event(raw_climate_record, cur, con):
             # add all parameters values to EventData table
             add_parameter_values_to_event_data(
                 cur, con, row, parameter_id, event_id)
+        return HTTPException(
+            status_code=200, detail='Event added to database')
     else:
         return HTTPException(
             status_code=500, detail='Event is already in database')
