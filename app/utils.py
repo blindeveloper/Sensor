@@ -58,10 +58,7 @@ def get_minutes_from_ts(ts):
 
 
 def get_day_from_ts(ts):
-    print('ts: ', ts)
     dt = datetime.strptime(ts, TIME_FORMAT)
-    print('dt.day: ', dt.day)
-
     return dt.day
 
 

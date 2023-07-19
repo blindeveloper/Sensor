@@ -1,12 +1,10 @@
 import pytest
 
-from app.utils import get_minutes_from_ts
+from app.utils import is_integer_num
 
 
-@pytest.mark.parametrize("data,expected", [
-    (1, 1),
-    (1, 1)
+@pytest.mark.parametrize("input,expected", [
+    (1, True),
 ])
-def test_group_by_segments_per_parameter_type(data, expected):
-    result = get_minutes_from_ts(data)
-    result == expected
+def test_is_integer_num(input, expected):
+    is_integer_num(input) == expected
