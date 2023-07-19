@@ -1,6 +1,8 @@
-from app.utils import get_list_of_increments, add_hours_to_ts, get_fe_ready_record, convert_ts_to_sqlite_format, is_integer_num
+from app.utils import get_list_of_increments, add_minutes_to_ts, add_hours_to_ts, get_fe_ready_record, convert_ts_to_sqlite_format, is_integer_num
 from fastapi import HTTPException
 import json
+import statistics
+from datetime import datetime
 
 
 def get_increments(list):
@@ -34,6 +36,64 @@ def get_sql_events_in_range_segment(req):
             """
 
 
+def get_join_sql_in_range(req):
+    return f"""
+            SELECT Event.ts, EventData.value_numeric, Parameter.name FROM EventData 
+            INNER JOIN Parameter ON Parameter.id = EventData.parameter_id
+            INNER JOIN Event ON Event.id = EventData.event_id
+            WHERE ts >= '{req['count_from_record_ts']}'
+            AND ts <= datetime('{req['last_record_ts']}')
+            ORDER BY ts DESC;
+        """
+
+# I tried to implement flexible segments with group_by_segments_per_parameter_type but could not finish it in time
+
+
+def group_by_segments_per_parameter_type(req, is_average, cur):
+    query_string = get_join_sql_in_range(req)
+    rec = cur.execute(query_string)
+    records = rec.fetchall()
+
+    start_date = datetime.fromisoformat(req['count_from_record_ts'])
+    end_date = datetime.fromisoformat(req['last_record_ts'])
+    segment = req['segment_h']
+
+    result = {}
+
+    tmp_start_date = start_date
+    tmp_end_date = add_minutes_to_ts(end_date, segment)
+    tmp_segment = {}
+
+    for record in records:
+        if tmp_start_date < datetime.fromisoformat(record[0]) <= tmp_end_date:
+            tmp_segment.setdefault(record[2], []).append(record[1])
+        else:
+            for name, values in tmp_segment.items():
+                if is_average:
+                    value = statistics.mean(values) if values else None
+                else:
+                    value = values[0] if values else None
+
+                result[name] = (tmp_start_date, tmp_end_date, value)
+
+            tmp_start_date, tmp_end_date = tmp_end_date, add_minutes_to_ts(
+                tmp_end_date, segment)
+            tmp_segment = {}
+
+            tmp_segment.setdefault(record[2], []).append(record[1])
+
+    # for the last segment
+    for name, values in tmp_segment.items():
+        if is_average:
+            value = statistics.mean(values) if values else None
+        else:
+            value = values[0] if values else None
+
+        result[name] = (tmp_start_date, tmp_end_date, value)
+
+    return result
+
+
 def get_event_data_in_range(cur, request_params):
     list_of_events_with_data = []
     search_string = get_sql_events_in_range_segment(request_params)
@@ -56,7 +116,7 @@ def get_latest_weather(cur):
         latest_event = latest_event_res.fetchone()
         return get_data_for_single_event(cur, latest_event)
     except:
-        raise HTTPException(status_code=404, detail='Event not found')
+        raise HTTPException(status_code=404, detail='Latest event not found')
 
 
 def get_data_for_single_event(cur, event):
