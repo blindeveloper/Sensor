@@ -57,6 +57,14 @@ def get_minutes_from_ts(ts):
     return dt.minute
 
 
+def get_day_from_ts(ts):
+    print('ts: ', ts)
+    dt = datetime.strptime(ts, TIME_FORMAT)
+    print('dt.day: ', dt.day)
+
+    return dt.day
+
+
 def extract_hours_from_ts(ts, h):
     dt = datetime.strptime(ts, TIME_FORMAT)
     return str(dt - timedelta(hours=h))
@@ -65,6 +73,16 @@ def extract_hours_from_ts(ts, h):
 def add_hours_to_ts(ts, h):
     dt = datetime.strptime(ts, TIME_FORMAT)
     return str(dt + timedelta(hours=h))
+
+
+def add_days_to_ts(ts, d):
+    dt = datetime.strptime(ts, TIME_FORMAT)
+    return str(dt + timedelta(days=d))
+
+
+def add_minutes_to_ts(ts, m):
+    dt = datetime.fromisoformat(ts)
+    return str(dt + timedelta(minutes=m))
 
 
 def get_list_of_increments(range_h, segment_h, ts):
